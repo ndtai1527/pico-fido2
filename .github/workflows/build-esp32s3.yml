@@ -1,0 +1,34 @@
+name: Build Pico FIDO2 ESP32-S3
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build and merge binary
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: v5.5
+          target: esp32s3
+          command: |
+            idf.py set-target esp32s3
+            idf.py all
+            cd build
+            esptool.py --chip ESP32-S3 merge_bin -o pico_fido_esp32.bin @flash_args
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pico-fido2-esp32s3
+          path: build/pico_fido_esp32.bin
